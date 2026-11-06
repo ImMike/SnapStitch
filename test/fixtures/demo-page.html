@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Trail Notes – A weekend on the ridge</title>
+  <!-- Fictional page used to make the README screenshots (test/readme-shots.mjs). -->
+  <style>
+    :root { --ink: #1f2933; --muted: #5f6b7a; --accent: #0f766e; --accent-2: #f59e0b; --bg: #f7f5f0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 Georgia, 'Times New Roman', serif; }
+    header {
+      position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 28px;
+      padding: 14px 48px; background: rgba(255, 255, 255, .92); border-bottom: 1px solid #e5e1d8;
+      font: 600 15px/1 system-ui, sans-serif;
+    }
+    header .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; color: var(--accent); }
+    header nav { display: flex; gap: 22px; color: var(--muted); font-weight: 500; }
+    header .subscribe { margin-left: auto; padding: 9px 16px; border-radius: 999px; background: var(--accent); color: #fff; }
+    .hero { position: relative; height: 380px; overflow: hidden; }
+    .hero svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .hero .title {
+      position: absolute; left: 48px; bottom: 40px; max-width: 640px; color: #fff;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, .35);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: 48px; line-height: 1.1; }
+    .hero p { margin: 0; font: 18px/1.4 system-ui, sans-serif; opacity: .95; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 48px; max-width: 1120px; margin: 0 auto; padding: 44px 48px; }
+    article h2 { margin: 36px 0 10px; font-size: 28px; }
+    .meta { display: flex; align-items: center; gap: 12px; color: var(--muted); font: 14px system-ui, sans-serif; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .actions { display: flex; gap: 10px; margin: 22px 0 6px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1px solid #d6d1c6;
+      border-radius: 10px; background: #fff; font: 600 14px system-ui, sans-serif; color: var(--ink);
+      cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 0, 0, .08); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.saved { background: #fef3c7; border-color: var(--accent-2); }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 26px 0; }
+    .card {
+      overflow: hidden; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+      font: 14px/1.4 system-ui, sans-serif; transition: transform .2s, box-shadow .2s;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0, 0, 0, .12); }
+    .card .pic { height: 110px; }
+    .card div:last-child { padding: 12px 14px; }
+    .card b { display: block; font-size: 15px; }
+    .chart { display: flex; align-items: flex-end; gap: 14px; height: 200px; padding: 18px; border-radius: 14px; background: #fff; }
+    .chart div { flex: 1; border-radius: 8px 8px 0 0; background: linear-gradient(#14b8a6, #0f766e); position: relative; }
+    .chart span { position: absolute; bottom: -24px; left: 0; right: 0; text-align: center; font: 12px system-ui, sans-serif; color: var(--muted); }
+    .checklist { padding: 0; list-style: none; font: 15px system-ui, sans-serif; }
+    .checklist li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #e9e5dc; }
+    .checklist input { width: 18px; height: 18px; accent-color: var(--accent); }
+    aside .box { padding: 20px; border-radius: 14px; background: #fff; margin-bottom: 18px; font: 14px/1.5 system-ui, sans-serif; }
+    aside h3 { margin: 0 0 10px; font-size: 16px; }
+    .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e5e1d8; }
+    .stat b { color: var(--accent); }
+    .map { height: 180px; border-radius: 10px; background:
+      radial-gradient(circle at 30% 40%, #99f6e4 0 18%, transparent 19%),
+      radial-gradient(circle at 70% 65%, #fde68a 0 14%, transparent 15%),
+      repeating-linear-gradient(45deg, #e7f5ef 0 12px, #dff0e8 12px 24px); }
+    footer { padding: 40px 48px; background: #1f2933; color: #cbd2d9; font: 14px system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">
+      <svg width="26" height="26" viewBox="0 0 24 24"><path d="M2 20 9 7l4 7 3-4 6 10z" fill="#0f766e"/></svg>
+      Trail Notes
+    </span>
+    <nav><span>Routes</span><span>Gear</span><span>Stories</span><span>Maps</span></nav>
+    <span class="subscribe">Subscribe</span>
+  </header>
+
+  <section class="hero">
+    <svg viewBox="0 0 1200 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset=".55" stop-color="#f472b6"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+      </defs>
+      <rect width="1200" height="380" fill="url(#sky)"/>
+      <circle cx="880" cy="150" r="56" fill="#fde68a" opacity=".9"/>
+      <path d="M0 300 180 150 330 260 520 110 700 250 860 160 1050 270 1200 190V380H0z" fill="#4c1d95" opacity=".55"/>
+      <path d="M0 340 220 220 400 320 610 200 820 330 1000 240 1200 320V380H0z" fill="#1e1b4b" opacity=".8"/>
+    </svg>
+    <div class="title">
+      <h1>A weekend on the ridge</h1>
+      <p>Two days, 31 km and one very windy summit. Here's the route, the gear and what we'd change.</p>
+    </div>
+  </section>
+
+  <main>
+    <article>
+      <div class="meta"><span class="avatar"></span><span>By Sam Rivera · 8 min read · Updated this week</span></div>
+      <div class="actions">
+        <button class="btn primary" id="save">★ Save route</button>
+        <button class="btn">Download GPX</button>
+        <button class="btn">Share</button>
+      </div>
+      <p>We left the trailhead just after sunrise, when the valley was still blue and the ridge above it was already gold. The first five kilometres climb steadily through pine forest, which is a gentle way to warm up before the switchbacks begin.</p>
+      <h2>The route at a glance</h2>
+      <div class="cards">
+        <div class="card"><div class="pic" style="background:linear-gradient(135deg,#34d399,#0ea5e9)"></div><div><b>Day 1 · Forest climb</b>14 km · 980 m up</div></div>
+        <div class="card"><div class="pic" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"></div><div><b>Night · Saddle camp</b>Water 200 m below</div></div>
+        <div class="card"><div class="pic" style="background:linear-gradient(135deg,#a78bfa,#6366f1)"></div><div><b>Day 2 · Ridge walk</b>17 km · 620 m up</div></div>
+      </div>
+      <p>The saddle camp is exposed, so pitch low and stake everything twice. We filtered water from the spring on the north side, which was running well even late in the season.</p>
+      <h2>Elevation by section</h2>
+      <div class="chart">
+        <div style="height:35%"><span>Start</span></div><div style="height:58%"><span>Pines</span></div>
+        <div style="height:82%"><span>Switchbacks</span></div><div style="height:70%"><span>Saddle</span></div>
+        <div style="height:96%"><span>Summit</span></div><div style="height:64%"><span>Ridge</span></div>
+        <div style="height:30%"><span>Finish</span></div>
+      </div>
+      <h2>Packing checklist</h2>
+      <ul class="checklist">
+        <li><input type="checkbox" checked> Wind shell and warm hat</li>
+        <li><input type="checkbox" checked> 2 L water + filter</li>
+        <li><input type="checkbox" id="stove"> Stove, fuel and lighter</li>
+        <li><input type="checkbox"> Headlamp with spare batteries</li>
+        <li><input type="checkbox"> Offline map and paper backup</li>
+      </ul>
+      <h2>What we'd change</h2>
+      <p>Start the ridge earlier. By noon the wind picked up enough that conversation was a shouting match, and the last exposed section is much more pleasant in calm morning air. We'd also carry a lighter tent: the extra comfort wasn't worth a kilo on the climb.</p>
+      <p>If you go, check the forecast for gusts, not just rain. The ridge is beautiful in clear weather and miserable in a storm.</p>
+    </article>
+    <aside>
+      <div class="box">
+        <h3>Trip stats</h3>
+        <div class="stat"><span>Distance</span><b>31 km</b></div>
+        <div class="stat"><span>Ascent</span><b>1,600 m</b></div>
+        <div class="stat"><span>Highest point</span><b>2,340 m</b></div>
+        <div class="stat"><span>Difficulty</span><b>Moderate</b></div>
+      </div>
+      <div class="box"><h3>Map</h3><div class="map"></div></div>
+      <div class="box"><h3>Newsletter</h3>One route every Friday. No spam, unsubscribe anytime.</div>
+    </aside>
+  </main>
+  <footer>Trail Notes is a fictional site made for screenshots.</footer>
+  <script>
+    document.getElementById('save').addEventListener('click', (e) => {
+      e.currentTarget.classList.toggle('saved');
+      e.currentTarget.classList.toggle('primary');
+      e.currentTarget.textContent = e.currentTarget.classList.contains('saved') ? '★ Saved' : '★ Save route';
+    });
+  </script>
+</body>
+</html>

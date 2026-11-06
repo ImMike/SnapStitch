@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Long page fixture</title>
+  <!-- 60px sticky header + 10 bands x 600px = 6060px tall. Solid colors only so
+       the e2e test can verify every stitched pixel row. -->
+  <style>
+    html { scroll-behavior: smooth; }
+    body { margin: 0; }
+    header { position: sticky; top: 0; height: 60px; background: rgb(255, 0, 255); }
+    .band { height: 600px; }
+    #badge {
+      position: fixed; right: 20px; bottom: 20px; width: 120px; height: 40px;
+      background: rgb(0, 255, 255);
+    }
+    /* Device-pixel ruler: row i is rgb(i & 255, i >> 8, 77). A stitched image
+       must read back every row index exactly once, in order. */
+    #ruler {
+      position: absolute; left: 200px; top: 0; width: 30px; height: 6060px;
+      z-index: 1; image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <header></header>
+  <div class="band" style="background: rgb(230, 25, 75)"></div>
+  <div class="band" style="background: rgb(60, 180, 75)"></div>
+  <div class="band" style="background: rgb(255, 225, 25)"></div>
+  <div class="band" style="background: rgb(67, 99, 216)"></div>
+  <div class="band" style="background: rgb(245, 130, 49)"></div>
+  <div class="band" style="background: rgb(145, 30, 180)"></div>
+  <div class="band" style="background: rgb(128, 128, 0)"></div>
+  <div class="band" style="background: rgb(0, 128, 128)"></div>
+  <div class="band" style="background: rgb(170, 110, 40)"></div>
+  <div class="band" style="background: rgb(128, 0, 0)"></div>
+  <div id="badge"></div>
+  <canvas id="ruler"></canvas>
+  <script>
+    const ruler = document.getElementById('ruler');
+    ruler.width = Math.round(30 * devicePixelRatio);
+    ruler.height = Math.round(6060 * devicePixelRatio);
+    const ctx = ruler.getContext('2d');
+    for (let i = 0; i < ruler.height; i++) {
+      ctx.fillStyle = `rgb(${i & 255}, ${i >> 8}, 77)`;
+      ctx.fillRect(0, i, ruler.width, 1);
+    }
+  </script>
+</body>
+</html>

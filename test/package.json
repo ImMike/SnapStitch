@@ -1,0 +1,12 @@
+{
+  "name": "snapstitch-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node e2e.mjs",
+    "shots": "node readme-shots.mjs"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.16.0"
+  }
+}

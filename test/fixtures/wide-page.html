@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Wide page fixture</title>
+  <!-- 2500 x 2000 grid of 500px cells, each a unique color:
+       rgb(30 + 45*col, 30 + 60*row, 128). Exercises 2D tiling. -->
+  <style>
+    body { margin: 0; position: relative; width: 2500px; height: 2000px; }
+    body > div { position: absolute; width: 500px; height: 500px; }
+  </style>
+</head>
+<body>
+  <script>
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 5; col++) {
+        const cell = document.createElement('div');
+        cell.style.cssText = `left:${col * 500}px;top:${row * 500}px;` +
+          `background:rgb(${30 + 45 * col},${30 + 60 * row},128)`;
+        document.body.appendChild(cell);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "SnapStitch",
+  "version": "1.0.0",
+  "description": "Screenshot or record a dragged area or the visible page, or stitch the whole scrolling page into one image. Saves PNG, MP4 and GIF.",
+  "homepage_url": "https://github.com/ImMike/SnapStitch",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "scripting", "clipboardWrite", "tabCapture", "offscreen", "storage"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "SnapStitch",
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "commands": {
+    "capture-region": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Capture a dragged area"
+    },
+    "capture-visible": {
+      "suggested_key": { "default": "Alt+Shift+V" },
+      "description": "Capture the visible page"
+    },
+    "capture-full": {
+      "suggested_key": { "default": "Alt+Shift+F" },
+      "description": "Capture the whole page (scroll and stitch)"
+    },
+    "record-area": {
+      "suggested_key": { "default": "Alt+Shift+G" },
+      "description": "Record a dragged area (press again to stop)"
+    },
+    "record-visible": {
+      "description": "Record the visible page (press again to stop)"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capture</title>
+  <link rel="icon" href="../icons/32.png">
+  <link rel="stylesheet" href="preview.css">
+</head>
+<body>
+  <header>
+    <div class="info">
+      <div id="title">Loading…</div>
+      <div id="meta"></div>
+    </div>
+    <div class="actions">
+      <div id="views" class="segmented" role="group" aria-label="Preview format" hidden>
+        <button data-view="video" aria-pressed="true">MP4</button>
+        <button data-view="gif" aria-pressed="false">GIF</button>
+      </div>
+      <button id="copy" title="Ctrl+C" hidden>Copy</button>
+      <button id="download-gif" hidden>Download GIF</button>
+      <button id="download" class="primary" title="Ctrl+S">Download PNG</button>
+    </div>
+  </header>
+  <main>
+    <img id="shot" alt="Capture" hidden>
+    <video id="video" controls autoplay loop muted playsinline hidden></video>
+    <p id="empty" hidden></p>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="preview.js" type="module"></script>
+</body>
+</html>

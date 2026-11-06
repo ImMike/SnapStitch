@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Animated page fixture</title>
+  <!-- Whole viewport switches between three flat colors every 500ms. -->
+  <style>
+    body { margin: 0; }
+    #block { position: fixed; inset: 0; background: rgb(40, 180, 90); }
+  </style>
+</head>
+<body>
+  <div id="block"></div>
+  <script>
+    const colors = ['rgb(40, 180, 90)', 'rgb(40, 90, 200)', 'rgb(240, 200, 40)'];
+    let i = 0;
+    setInterval(() => (document.getElementById('block').style.background = colors[++i % 3]), 500);
+  </script>
+</body>
+</html>
