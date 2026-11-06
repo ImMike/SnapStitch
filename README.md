@@ -42,7 +42,8 @@
 Press `Alt+Shift+S`, drag a box, done. The screenshot opens in a preview tab with **Copy** and **Download PNG** buttons. It's already on your clipboard, so you can paste it straight away.
 
 <p align="center">
-  <img src="docs/images/area-select.png" alt="Selecting an area of a web page to screenshot with SnapStitch" width="88%">
+  <img src="docs/images/area-select.png" alt="Selecting an area of a web page to screenshot with SnapStitch" width="49%">
+  <img src="docs/images/preview-screenshot.png" alt="SnapStitch screenshot preview tab with Copy and Download PNG buttons and a copied-to-clipboard notice" width="49%">
 </p>
 
 ### Full-page screenshot (scrolling screenshot)
