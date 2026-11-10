@@ -1,4 +1,5 @@
-import { getShot } from './db.js';
+import { getShot, deleteShot } from './db.js';
+import { importDesktopShot } from './desktop-import.js';
 
 const MODE_LABELS = {
   region: 'Selected area',
@@ -6,24 +7,52 @@ const MODE_LABELS = {
   full: 'Whole page',
   'record-area': 'Area recording',
   'record-visible': 'Page recording',
+  // Desktop captures (SnapStitch Desktop)
+  'screen-area': 'Selected area',
+  screen: 'Full screen',
+  screens: 'All screens',
+  'record-screen-area': 'Area recording',
+  'record-screen': 'Screen recording',
 };
 
 const $ = (id) => document.getElementById(id);
 const img = $('shot');
 const video = $('video');
 
-const id = new URLSearchParams(location.search).get('id');
-const shot = id && (await getShot(id));
+const params = new URLSearchParams(location.search);
+let missing = ['Capture not found', 'Only the 20 most recent screenshots and 5 most recent recordings are kept.'];
+const shot = params.has('desktop')
+  ? await loadDesktopShot(params.get('desktop'))
+  : params.get('id') && (await getShot(params.get('id')));
 
 if (!shot) {
-  $('title').textContent = 'Capture not found';
-  $('empty').textContent = 'Only the 20 most recent screenshots and 5 most recent recordings are kept.';
+  [$('title').textContent, $('empty').textContent] = missing;
   $('empty').hidden = false;
   $('download').hidden = true;
-} else if (shot.kind === 'video') {
-  showRecording();
 } else {
-  showScreenshot();
+  if (shot.kind === 'video') showRecording();
+  else showScreenshot();
+  $('delete').hidden = false;
+  $('delete').addEventListener('click', remove);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Delete' && !(e.ctrlKey || e.metaKey || e.altKey || e.shiftKey)) remove();
+  });
+}
+
+// The desktop app opens ?desktop=<id>; once stored, the tab becomes ?id=<id>
+// so reloading it works like for any other capture.
+async function loadDesktopShot(id) {
+  $('title').textContent = 'Loading desktop capture…';
+  try {
+    const result = await importDesktopShot(id, {
+      onWaiting: () => ($('title').textContent = 'Finishing desktop capture…'),
+    });
+    history.replaceState(null, '', `?id=${id}`);
+    return result;
+  } catch (err) {
+    missing = ['Desktop capture not available', err.message];
+    return null;
+  }
 }
 
 function showHeader(details) {
@@ -32,7 +61,8 @@ function showHeader(details) {
   document.title = `${shot.kind === 'video' ? 'Recording' : 'Screenshot'} – ${label}`;
   $('title').textContent = label;
   const meta = $('meta');
-  meta.textContent = [MODE_LABELS[shot.mode], `${shot.width} × ${shot.height} px`, ...details].join(' · ');
+  meta.textContent = [MODE_LABELS[shot.mode], shot.display, `${shot.width} × ${shot.height} px`, ...details]
+    .filter(Boolean).join(' · ');
   if (host) {
     const link = Object.assign(document.createElement('a'), {
       href: shot.url, textContent: shot.url, target: '_blank', rel: 'noopener',
@@ -52,7 +82,7 @@ function showScreenshot() {
   $('download').addEventListener('click', save);
   onShortcut({ c: copy, s: save });
 
-  if (shot.mode === 'region') {
+  if (shot.mode === 'region' || shot.mode === 'screen-area') {
     // Clipboard writes need a focused document; wait for focus if needed.
     if (document.hasFocus()) copy({ auto: true });
     else addEventListener('focus', () => copy({ auto: true }), { once: true });
@@ -129,11 +159,20 @@ async function copy({ auto = false } = {}) {
 
 function download(url, prefix, ext) {
   const stamp = new Date(shot.createdAt).toLocaleString('sv-SE').replace(' ', '_').replaceAll(':', '-');
-  const host = hostOf(shot.url).replace(/[^a-z0-9.-]+/gi, '-');
+  const where = shot.source === 'desktop' ? 'desktop' : hostOf(shot.url).replace(/[^a-z0-9.-]+/gi, '-');
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${prefix}_${host ? `${host}_` : ''}${stamp}.${ext}`;
+  a.download = `${prefix}_${where ? `${where}_` : ''}${stamp}.${ext}`;
   a.click();
+}
+
+// Removes the capture from SnapStitch and closes the tab. (Closing the tab
+// without deleting keeps it among the recent captures.)
+async function remove() {
+  await deleteShot(shot.id);
+  const tab = await chrome.tabs.getCurrent();
+  if (tab) chrome.tabs.remove(tab.id);
+  else window.close();
 }
 
 function hostOf(url) {

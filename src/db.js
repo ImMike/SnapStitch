@@ -41,6 +41,10 @@ export function getShot(id) {
   return tx('readonly', (store) => store.get(id));
 }
 
+export function deleteShot(id) {
+  return tx('readwrite', (store) => store.delete(id));
+}
+
 // Delete everything except the newest KEEP shots of each kind.
 export function pruneShots() {
   return tx('readwrite', (store) => {

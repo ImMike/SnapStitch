@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>SnapStitch area</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; cursor: crosshair; user-select: none; }
+    canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    .shade { position: fixed; inset: 0; background: rgba(0, 0, 0, .35); }
+    .box {
+      position: fixed; display: none;
+      outline: 1px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 0 100vmax rgba(0, 0, 0, .35);
+    }
+    .label, .hint {
+      position: fixed; pointer-events: none;
+      font: 12px/1.2 system-ui, sans-serif; color: #fff;
+      background: rgba(17, 17, 17, .85); border-radius: 4px; padding: 4px 7px;
+    }
+    .label { display: none; }
+    .hint { top: 16px; left: 50%; transform: translateX(-50%); font-size: 13px; padding: 7px 12px; }
+  </style>
+</head>
+<body>
+  <canvas></canvas>
+  <div class="shade"></div>
+  <div class="box"></div>
+  <div class="label"></div>
+  <div class="hint" hidden></div>
+  <script src="overlay.js" type="module"></script>
+</body>
+</html>

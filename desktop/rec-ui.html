@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>SnapStitch recording</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; user-select: none; }
+    [hidden] { display: none !important; }
+    .frame { position: fixed; inset: 0; box-sizing: border-box; border: 2px dashed #ef4444; }
+    .bar {
+      position: fixed; inset: 2px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px;
+      box-sizing: border-box; border-radius: 8px; background: rgba(17, 17, 17, .9); color: #fff;
+      font: 13px/1 system-ui, sans-serif;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #ef4444; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: .3; } }
+    .time { font-variant-numeric: tabular-nums; min-width: 34px; flex: 1; }
+    button {
+      height: 26px; padding: 0 10px; border: 0; border-radius: 5px; cursor: pointer;
+      font: 600 12px/1 system-ui, sans-serif; color: #fff; background: #dc2626;
+    }
+    button:hover { background: #b91c1c; }
+    .cancel { background: transparent; color: #d1d5db; padding: 0 8px; font-weight: 400; }
+    .cancel:hover { background: rgba(255, 255, 255, .12); }
+  </style>
+</head>
+<body>
+  <div class="frame" hidden></div>
+  <div class="bar" hidden>
+    <span class="dot"></span><span class="time">0:00</span>
+    <button class="stop" title="Stop and open in the browser">&#9632; Stop</button>
+    <button class="cancel" title="Discard recording">&#10005; Discard</button>
+  </div>
+  <script src="rec-ui.js" type="module"></script>
+</body>
+</html>

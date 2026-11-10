@@ -394,6 +394,123 @@ async function runSuite(scale, baseUrl) {
       await preview.close();
     });
 
+    await test('preview: Delete removes the capture and closes the tab', async () => {
+      await clickPopup(page, 'visible');
+      const preview = await waitForPreview('delete');
+      const id = new URL(preview.url()).searchParams.get('id');
+      const closed = new Promise((resolve) => preview.once('close', resolve));
+      await preview.click('#delete');
+      await Promise.race([closed, sleep(5000).then(() => assert.fail('preview tab not closed'))]);
+      const check = await browser.newPage();
+      await check.goto(`chrome-extension://${extensionId}/src/preview.html?id=${id}`);
+      await check.waitForFunction(() => document.getElementById('title').textContent === 'Capture not found', waitOpts);
+      assert.equal(await check.$eval('#delete', (b) => b.hidden), true, 'no Delete on a missing capture');
+    });
+
+    await test('desktop capture: imported over native messaging, opens like any capture', async () => {
+      // A scripted stand-in for the native port (desktop/host/host.js protocol).
+      const host = await browser.newPage();
+      await host.goto(`chrome-extension://${extensionId}/src/preview.html?id=none`);
+      const run = (scenario) => host.evaluate(async (scenario) => {
+        const { importDesktopShot } = await import('./desktop-import.js');
+        const { getShot } = await import('./db.js');
+        const canvas = new OffscreenCanvas(300, 200);
+        const c = canvas.getContext('2d');
+        c.fillStyle = 'rgb(230, 25, 75)';
+        c.fillRect(0, 0, 300, 200);
+        const png = new Uint8Array(await (await canvas.convertToBlob({ type: 'image/png' })).arrayBuffer());
+        const video = new Uint8Array(9 * 1024 * 1024).map((_, i) => i % 251); // exercises the credit window
+        const b64 = (bytes) => {
+          let s = '';
+          for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+          return btoa(s);
+        };
+        const id = crypto.randomUUID();
+        const sent = [];
+        const on = { msg: [], disc: [] };
+        const emit = (m) => on.msg.forEach((f) => f(m));
+        const port = {
+          onMessage: { addListener: (f) => on.msg.push(f) },
+          onDisconnect: { addListener: (f) => on.disc.push(f) },
+          disconnect: () => sent.push({ type: 'disconnect' }),
+          postMessage(m) {
+            sent.push(m.type === 'more' ? { type: 'more', received: m.received } : m);
+            if (m.type !== 'get') return;
+            setTimeout(() => {
+              if (scenario === 'drop') return on.disc.forEach((f) => f());
+              if (scenario === 'error') return emit({ type: 'error', code: 'not-found', message: 'gone' });
+              emit({ type: 'waiting' });
+              const big = scenario === 'video';
+              const parts = big
+                ? [{ field: 'video', type: 'video/mp4', size: video.length }, { field: 'gif', type: 'image/gif', size: png.length }]
+                : [{ field: 'blob', type: 'image/png', size: png.length + (scenario === 'short' ? 1 : 0) }];
+              const shot = big
+                ? { mode: 'record-screen', kind: 'video', title: 'Desktop', display: 'Screen 2 of 3', width: 300, height: 200, duration: 3, createdAt: Date.now() }
+                : { mode: 'screen', title: 'Desktop', display: 'Screen 2 of 3', width: 300, height: 200, createdAt: Date.now() };
+              emit({ type: 'meta', shot, parts });
+              const send = (field, bytes) => {
+                for (let i = 0; i < bytes.length; i += 512 * 1024) emit({ type: 'chunk', field, data: b64(bytes.subarray(i, i + 512 * 1024)) });
+              };
+              if (big) {
+                send('video', video);
+                send('gif', png);
+              } else {
+                send('blob', png);
+              }
+              emit({ type: 'end' });
+            }, 10);
+          },
+        };
+        let waited = false;
+        try {
+          const shot = await importDesktopShot(id, { connect: () => port, onWaiting: () => (waited = true) });
+          const stored = await getShot(id);
+          return { id, waited, sent, stored: !!stored, source: stored.source, size: (stored.blob ?? stored.video).size };
+        } catch (err) {
+          return { id, error: err.message, sent, stored: !!(await getShot(id)) };
+        }
+      }, scenario);
+
+      const png = await run('png');
+      assert.equal(png.error, undefined);
+      assert.ok(png.stored && png.waited && png.source === 'desktop', JSON.stringify(png));
+      assert.deepEqual(png.sent.map((m) => m.type), ['get', 'ack']);
+
+      const vid = await run('video');
+      assert.equal(vid.size, 9 * 1024 * 1024, 'video bytes intact');
+      assert.deepEqual(vid.sent.filter((m) => m.type === 'more').map((m) => m.received), [4 * 1024 * 1024, 8 * 1024 * 1024]);
+      assert.equal(vid.sent.at(-1).type, 'ack');
+
+      for (const [scenario, message] of [['short', /incomplete/], ['error', /^gone$/], ['drop', /Lost the connection/]]) {
+        const r = await run(scenario);
+        assert.match(r.error ?? '', message, scenario);
+        assert.equal(r.stored, false, `${scenario}: nothing stored`);
+        assert.ok(!r.sent.some((m) => m.type === 'ack'), `${scenario}: no ack`);
+      }
+
+      // The stored capture opens like any other, labeled as a desktop capture.
+      const preview = await browser.newPage();
+      await preview.goto(`chrome-extension://${extensionId}/src/preview.html?id=${png.id}`);
+      await preview.waitForSelector('#shot:not([hidden])');
+      const header = await preview.evaluate(() => ({
+        title: document.getElementById('title').textContent,
+        meta: document.getElementById('meta').textContent,
+        buttons: [...document.querySelectorAll('.actions > button:not([hidden])')].map((b) => b.textContent),
+      }));
+      assert.deepEqual(header, {
+        title: 'Desktop', meta: 'Full screen · Screen 2 of 3 · 300 × 200 px', buttons: ['Delete', 'Copy', 'Download PNG'],
+      });
+      const cdp = await preview.createCDPSession();
+      await cdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadDir });
+      await preview.click('#download');
+      let file;
+      for (let i = 0; i < 50 && !file; i++) {
+        await sleep(100);
+        file = (await fs.readdir(downloadDir)).find((f) => f.startsWith('screenshot_desktop_'));
+      }
+      assert.match(file ?? '', /^screenshot_desktop_\d{4}-\d\d-\d\d_\d\d-\d\d-\d\d\.png$/);
+    });
+
     await test('restricted page shows error badge, next capture still works', async () => {
       const internal = await browser.newPage();
       await internal.goto('chrome://version');

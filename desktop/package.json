@@ -1,0 +1,65 @@
+{
+  "name": "snapstitch-desktop",
+  "version": "1.1.0",
+  "private": true,
+  "description": "SnapStitch for the Windows desktop: tray app that captures any screen and opens the result in the browser extension's preview.",
+  "author": "ImMike",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/host.test.mjs && electron test/capture.test.js",
+    "self-test": "node test/self-test.mjs",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "45.1.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.snapstitch.desktop",
+    "productName": "SnapStitch Desktop",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!test/**",
+      "!dist/**",
+      "!build/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../src",
+        "to": "src",
+        "filter": [
+          "rec-core.js",
+          "gif-worker.js",
+          "ticker.js",
+          "popup.css",
+          "vendor/**"
+        ]
+      },
+      {
+        "from": "../icons",
+        "to": "icons"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SnapStitch Desktop",
+      "runAfterFinish": true,
+      "include": "build/installer.nsh",
+      "artifactName": "SnapStitch-Desktop-Setup-${version}.exe"
+    }
+  }
+}

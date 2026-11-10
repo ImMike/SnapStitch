@@ -2,3 +2,4 @@ node_modules/
 test/artifacts/
 # Local working notes
 tasks/
+desktop/dist/
