@@ -16,7 +16,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const extensionPath = path.resolve(here, '..');
+// SNAPSTITCH_EXTENSION=<folder> tests another copy, e.g. the unzipped store package.
+const extensionPath = path.resolve(process.env.SNAPSTITCH_EXTENSION ?? path.join(here, '..'));
 const artifactsDir = path.join(here, 'artifacts');
 
 const BANDS = [
@@ -509,6 +510,25 @@ async function runSuite(scale, baseUrl) {
         file = (await fs.readdir(downloadDir)).find((f) => f.startsWith('screenshot_desktop_'));
       }
       assert.match(file ?? '', /^screenshot_desktop_\d{4}-\d\d-\d\d_\d\d-\d\d-\d\d\.png$/);
+    });
+
+    await test('desktop capture: asks for the optional permission before importing', async () => {
+      // Without the permission the page must not try to connect, and must ask
+      // with a button (requests need a click). Accepting Chrome's own prompt
+      // can't be automated, so that last step is checked by hand.
+      const ask = await browser.newPage();
+      await ask.goto(`chrome-extension://${extensionId}/src/preview.html?desktop=00000000-0000-4000-8000-000000000000`);
+      await ask.waitForSelector('#permission:not([hidden])', waitOpts);
+      const shown = await ask.evaluate(async () => ({
+        title: document.getElementById('title').textContent,
+        allow: document.getElementById('allow').textContent,
+        buttons: [...document.querySelectorAll('.actions > button:not([hidden])')].map((b) => b.textContent),
+        granted: await chrome.permissions.contains({ permissions: ['nativeMessaging'] }),
+        api: typeof chrome.runtime.connectNative,
+      }));
+      assert.deepEqual(shown, {
+        title: 'Desktop capture waiting', allow: 'Allow desktop captures', buttons: [], granted: false, api: 'undefined',
+      });
     });
 
     await test('restricted page shows error badge, next capture still works', async () => {

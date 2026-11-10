@@ -1,4 +1,5 @@
-// Regenerates the README images in docs/images/ by driving the real extension
+// Regenerates the README images in docs/images/ and the Chrome Web Store
+// images in docs/store/ by driving the real extension
 // on a fictional demo page (fixtures/demo-page.html).
 //
 //   cd test && npm install && npm run shots
@@ -11,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const out = path.join(root, 'docs', 'images');
+const storeOut = path.join(root, 'docs', 'store');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // The demo page is served at a reserved .example domain (never a real site)
@@ -18,6 +20,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const demoUrl = 'https://trailnotes.example/weekend-on-the-ridge';
 const demoHtml = await fs.readFile(path.join(here, 'fixtures', 'demo-page.html'));
 await fs.mkdir(out, { recursive: true });
+await fs.mkdir(storeOut, { recursive: true });
 
 const browser = await puppeteer.launch({
   headless: true,
@@ -64,7 +67,7 @@ try {
   }, selector).then((b64) => Buffer.from(b64, 'base64'));
 
   // Renders an HTML composition to docs/images/<file>. height 'auto' fits the content.
-  async function render(html, width, height, file, deviceScaleFactor = 1) {
+  async function render(html, width, height, file, deviceScaleFactor = 1, dir = out) {
     const p = await browser.newPage();
     await p.setViewport({ width, height: height === 'auto' ? 100 : height, deviceScaleFactor });
     await p.setContent(html, { waitUntil: 'load' });
@@ -75,7 +78,7 @@ try {
       });
       await p.setViewport({ width, height: h, deviceScaleFactor });
     }
-    await p.screenshot({ path: path.join(out, file) });
+    await p.screenshot({ path: path.join(dir, file) });
     await p.close();
   }
 
@@ -122,7 +125,7 @@ try {
   await page.mouse.up();
   let preview = await nextPreview();
   await preview.waitForFunction(() => document.getElementById('toast').classList.contains('show'), { polling: 100 });
-  await preview.screenshot({ path: path.join(out, 'preview-screenshot.png') });
+  const previewShot = await preview.screenshot({ path: path.join(out, 'preview-screenshot.png') });
   await preview.close();
 
   // --- Whole page ----------------------------------------------------------------
@@ -171,7 +174,7 @@ try {
   await sleep(700);
   await page.mouse.move(...(await center(page, '.card:nth-child(2)')), { steps: 25 });
   await sleep(900);
-  await page.screenshot({ path: path.join(out, 'recording.png') });
+  const recordingShot = await page.screenshot({ path: path.join(out, 'recording.png') });
   await page.evaluate(() => window.scrollBy({ top: 240, behavior: 'smooth' }));
   await sleep(900);
   await page.mouse.move(...(await center(page, '.card:nth-child(3)')), { steps: 20 });
@@ -188,7 +191,7 @@ try {
     await new Promise((r) => video.addEventListener('seeked', r, { once: true }));
   });
   await sleep(1200); // let the player's loading spinner clear
-  await preview.screenshot({ path: path.join(out, 'preview-recording.png') });
+  const previewRecording = await preview.screenshot({ path: path.join(out, 'preview-recording.png') });
   await preview.close();
 
   // --- Hero / social preview (1280x640) ------------------------------------------
@@ -225,7 +228,86 @@ try {
         box-shadow:0 18px 50px rgba(0,0,0,.28)">
     </body>`, 1280, 640, 'hero.png');
 
-  console.log(`README images written to ${path.relative(root, out)}/`);
+  // --- Chrome Web Store: 1280x800 screenshots and the promo tiles -----------
+  // Store listings may not lean on other products' names, so none appear here.
+  const shot = (src, width, extra = '') => `<img src="${dataUrl(src)}" width="${width}"
+    style="display:block;border-radius:10px;box-shadow:0 14px 40px rgba(30,27,75,.22);${extra}">`;
+  const storeShot = (file, kicker, headline, sub, visual) => render(`
+    <body style="margin:0;height:100vh;overflow:hidden;box-sizing:border-box;padding-top:46px;font-family:system-ui;
+      color:#111827;text-align:center;background:radial-gradient(circle at 85% 10%,#c7d2fe,transparent 40%),
+      linear-gradient(135deg,#eef2ff,#e0f2fe)">
+      <div style="font-size:15px;font-weight:700;letter-spacing:.08em;color:#4f46e5">${kicker}</div>
+      <div style="margin-top:10px;font-size:42px;font-weight:800;letter-spacing:-.8px">${headline}</div>
+      <div style="margin-top:10px;font-size:20px;color:#4b5563">${sub}</div>
+      <div style="margin-top:34px;height:540px;display:flex;justify-content:center;align-items:center;gap:36px">${visual}</div>
+    </body>`, 1280, 800, file, 1, storeOut);
+  // A large page view with the result overlapping its lower right corner.
+  const overlap = (main, side) => `<div style="position:relative;width:1180px;height:540px;text-align:left">
+    <div style="position:absolute;left:0;top:0">${shot(main, 840)}</div>
+    <div style="position:absolute;right:0;bottom:0">${shot(side, 480)}</div></div>`;
+
+  await storeShot('1-area.png', 'SCREENSHOT AN AREA', "Drag a box. It's already on your clipboard.",
+    'Paste it straight into a chat, an email or a document, or download the PNG.',
+    overlap(areaSelect, previewShot));
+  await storeShot('2-full-page.png', 'WHOLE-PAGE SCREENSHOTS', 'The entire page in one sharp image.',
+    'SnapStitch scrolls and stitches for you. Sticky headers appear once, not on every part.',
+    shot(onScreen, 600) + `<div style="max-height:520px;overflow:hidden;border-radius:10px;
+      box-shadow:0 14px 40px rgba(30,27,75,.22)">${shot(stitched, 300, 'box-shadow:none;border-radius:0')}</div>`);
+  await storeShot('3-record.png', 'SCREEN RECORDER', 'Record your tab as MP4 and GIF.',
+    'Your pointer and clicks are drawn in. The outline and Stop bar never show up in the video.',
+    overlap(recordingShot, previewRecording));
+  const key = (k, label) => `<div style="display:flex;justify-content:space-between;gap:24px;padding:11px 0;
+    border-bottom:1px solid #c7d2fe;font-size:18px"><span>${label}</span><b style="font:600 16px ui-monospace,Consolas,monospace;
+    color:#3730a3">${k}</b></div>`;
+  await storeShot('4-popup.png', 'ONE CLICK OR ONE SHORTCUT', 'Every capture is a click away.',
+    "Light and dark mode. Change any shortcut in your browser's settings.",
+    `<img src="${popupLight.src}" width="340" style="border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.18)">
+     <img src="${popupDark.src}" width="340" style="border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.4)">
+     <div style="width:360px;text-align:left;margin-left:10px">
+       ${key('Alt+Shift+S', 'Screenshot an area')}${key('Alt+Shift+V', 'Screenshot the visible page')}
+       ${key('Alt+Shift+F', 'Screenshot the whole page')}${key('Alt+Shift+G', 'Record an area')}</div>`);
+  const promise = (title, text) => `<div style="padding:30px 32px;border-radius:16px;background:#fff;
+    text-align:left;box-shadow:0 14px 40px rgba(30,27,75,.12)"><div style="font-size:30px;font-weight:800">${title}</div>
+    <div style="margin-top:10px;font-size:20px;line-height:1.5;color:#4b5563">${text}</div></div>`;
+  await storeShot('5-private.png', 'PRIVATE BY DESIGN', 'Nothing leaves your computer.',
+    'Captures stay in your browser until you download them. Free and open source.',
+    `<div style="width:980px;display:grid;grid-template-columns:1fr 1fr;gap:28px">`
+    + promise('No account', 'Nothing to sign up for, nothing to log into.')
+    + promise('No uploads', 'SnapStitch makes no network requests at all.')
+    + promise('No tracking', 'No analytics, no ads, no remote code.')
+    + promise('Open source', 'Every line is public under the MIT license.') + '</div>');
+
+  await render(`
+    <body style="margin:0;height:100vh;overflow:hidden;font-family:system-ui;color:#111827;display:flex;
+      flex-direction:column;justify-content:center;padding-left:34px;
+      background:radial-gradient(circle at 90% 15%,#c7d2fe,transparent 50%),linear-gradient(135deg,#eef2ff,#e0f2fe)">
+      <div style="display:flex;align-items:center;gap:14px">
+        <img src="${icon}" width="58" height="58">
+        <div style="font-size:42px;font-weight:800;letter-spacing:-1px">SnapStitch</div>
+      </div>
+      <div style="margin-top:16px;font-size:21px;font-weight:700;line-height:1.3">Screenshot and record.<br>Everything stays on your PC.</div>
+    </body>`, 440, 280, 'promo-tile.png', 1, storeOut);
+
+  // Marquee tile: shown only if the store features SnapStitch on its home page.
+  await render(`
+    <body style="margin:0;height:100vh;overflow:hidden;font-family:system-ui;color:#111827;display:flex;
+      align-items:center;gap:56px;padding-left:80px;
+      background:radial-gradient(circle at 88% 12%,#c7d2fe,transparent 45%),linear-gradient(135deg,#eef2ff,#e0f2fe)">
+      <div style="flex:none;width:470px">
+        <div style="display:flex;align-items:center;gap:18px">
+          <img src="${icon}" width="84" height="84">
+          <div style="font-size:62px;font-weight:800;letter-spacing:-1.5px">SnapStitch</div>
+        </div>
+        <div style="margin-top:24px;font-size:30px;font-weight:700;line-height:1.3">Screenshot and record.<br>Everything stays on your PC.</div>
+        <div style="margin-top:14px;font-size:20px;line-height:1.5;color:#4b5563">Areas, whole pages, MP4 and GIF.<br>No account, no uploads.</div>
+      </div>
+      <div style="position:relative;width:780px;height:440px">
+        <div style="position:absolute;left:0;top:0">${shot(areaSelect, 600)}</div>
+        <div style="position:absolute;right:0;bottom:0">${shot(previewShot, 360)}</div>
+      </div>
+    </body>`, 1400, 560, 'marquee-tile.png', 1, storeOut);
+
+  console.log(`README images written to ${path.relative(root, out)}/, store images to ${path.relative(root, storeOut)}/`);
 } finally {
   await browser.close();
 }

@@ -15,6 +15,8 @@ const MODE_LABELS = {
   'record-screen': 'Screen recording',
 };
 
+const DESKTOP_PERMISSION = { permissions: ['nativeMessaging'] };
+
 const $ = (id) => document.getElementById(id);
 const img = $('shot');
 const video = $('video');
@@ -42,6 +44,7 @@ if (!shot) {
 // The desktop app opens ?desktop=<id>; once stored, the tab becomes ?id=<id>
 // so reloading it works like for any other capture.
 async function loadDesktopShot(id) {
+  if (!(await chrome.permissions.contains(DESKTOP_PERMISSION))) await askDesktopPermission();
   $('title').textContent = 'Loading desktop capture…';
   try {
     const result = await importDesktopShot(id, {
@@ -53,6 +56,20 @@ async function loadDesktopShot(id) {
     missing = ['Desktop capture not available', err.message];
     return null;
   }
+}
+
+// Receiving desktop captures (native messaging) is an optional permission, so
+// people who never install the desktop app are never asked for it. Requests
+// need a click; the tab then reloads, because only pages loaded after the
+// grant get the native messaging API. Never resolves.
+function askDesktopPermission() {
+  $('title').textContent = 'Desktop capture waiting';
+  $('download').hidden = true;
+  $('permission').hidden = false;
+  $('allow').addEventListener('click', async () => {
+    if (await chrome.permissions.request(DESKTOP_PERMISSION)) location.reload();
+  });
+  return new Promise(() => {});
 }
 
 function showHeader(details) {

@@ -5,7 +5,8 @@
   "description": "Screenshot or record a dragged area or the visible page, or stitch the whole scrolling page into one image. Saves PNG, MP4 and GIF.",
   "homepage_url": "https://github.com/ImMike/SnapStitch",
   "minimum_chrome_version": "116",
-  "permissions": ["activeTab", "scripting", "clipboardWrite", "tabCapture", "offscreen", "storage", "nativeMessaging"],
+  "permissions": ["activeTab", "scripting", "clipboardWrite", "tabCapture", "offscreen", "storage"],
+  "optional_permissions": ["nativeMessaging"],
   "background": {
     "service_worker": "src/background.js",
     "type": "module"

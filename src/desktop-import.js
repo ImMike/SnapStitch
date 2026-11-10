@@ -12,12 +12,8 @@ const fromBase64 = Uint8Array.fromBase64?.bind(Uint8Array)
   ?? ((s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
 
 // Resolves with the stored shot. `connect` is replaceable for tests.
-export function importDesktopShot(id, { onWaiting, connect = (name) => chrome.runtime.connectNative(name) } = {}) {
+export function importDesktopShot(id, { onWaiting, connect = connectHost } = {}) {
   return new Promise((resolve, reject) => {
-    if (!chrome.runtime.connectNative) {
-      // Updated from a version without the nativeMessaging permission.
-      throw new Error('Reload SnapStitch on your browser\'s extensions page so it can receive desktop captures.');
-    }
     const port = connect(HOST);
     let meta = null;
     const parts = {}; // field → Blob[]; one Blob per chunk lets Chrome keep them on disk
@@ -80,6 +76,14 @@ export function importDesktopShot(id, { onWaiting, connect = (name) => chrome.ru
     port.onDisconnect.addListener(() => fail(describe(chrome.runtime.lastError?.message)));
     port.postMessage({ type: 'get', id });
   });
+}
+
+function connectHost(name) {
+  if (!chrome.runtime.connectNative) {
+    // The optional nativeMessaging permission isn't granted (preview.js asks for it).
+    throw new Error('SnapStitch needs your permission to receive desktop captures. Reload this tab to allow it.');
+  }
+  return chrome.runtime.connectNative(name);
 }
 
 function describe(error = '') {

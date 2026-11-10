@@ -58,10 +58,25 @@ if (appExited) {
   // Another instance has the single-instance lock and would get our actions.
   throw new Error('SnapStitch Desktop is already running. Quit it (tray icon → Quit) and run the self-test again.');
 }
-const browser = await puppeteer.launch({ headless: true, pipe: true, enableExtensions: [repo] });
+// The extension asks for nativeMessaging when the first desktop capture
+// arrives, and tests can't click Chrome's prompt. So test a copy that has the
+// permission up front, and let the host accept that copy during the test.
+const extensionCopy = fs.mkdtempSync(path.join(os.tmpdir(), 'snapstitch-ext-'));
+const manifest = JSON.parse(fs.readFileSync(path.join(repo, 'manifest.json'), 'utf8'));
+manifest.permissions.push(...manifest.optional_permissions);
+delete manifest.optional_permissions;
+fs.writeFileSync(path.join(extensionCopy, 'manifest.json'), JSON.stringify(manifest));
+for (const dir of ['src', 'icons']) fs.cpSync(path.join(repo, dir), path.join(extensionCopy, dir), { recursive: true });
+const hostManifest = path.join(process.env.LOCALAPPDATA, 'SnapStitch', 'host', 'com.snapstitch.desktop.json');
+const registered = fs.readFileSync(hostManifest, 'utf8');
+
+const browser = await puppeteer.launch({ headless: true, pipe: true, enableExtensions: [extensionCopy] });
 try {
   const sw = await browser.waitForTarget((t) => t.type() === 'service_worker');
   const extensionId = new URL(sw.url()).host;
+  const host = JSON.parse(registered);
+  host.allowed_origins.push(`chrome-extension://${extensionId}/`);
+  fs.writeFileSync(hostManifest, JSON.stringify(host, null, 2));
   let count = 0;
 
   async function open(id) {
@@ -106,6 +121,8 @@ try {
 } finally {
   await browser.close();
   app.kill();
+  fs.writeFileSync(hostManifest, registered);
+  fs.rmSync(extensionCopy, { recursive: true, force: true });
   fs.rmSync(log, { force: true });
 }
 console.log(failures ? `\n${failures} failed` : '\nSelf-test passed');

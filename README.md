@@ -153,7 +153,7 @@ Do this after installing the extension. SnapStitch Desktop comes as a normal Win
    If it says Electron failed to install, run `node node_modules/electron/install.js` once, then `npm run dist` again.
 3. **Double-click `desktop\dist\SnapStitch-Desktop-Setup-1.1.0.exe`.** It installs for your Windows user only (no admin prompt), adds Start menu and desktop shortcuts, and starts the app. Keep the installer if you want to install it on another PC.
 4. The first time it starts, it asks **"Start SnapStitch Desktop when Windows starts?"** Choose **Yes** if you want it always ready. You can change this later in the tray menu.
-5. On your browser's extensions page, click the **reload** icon on the SnapStitch card. The extension needs one new permission to receive desktop captures. Do it in every browser profile you use it in.
+5. On your browser's extensions page, click the **reload** icon on the SnapStitch card, in every browser profile you use it in, so it picks up the update. The first time a desktop capture arrives, the preview tab asks you to **Allow desktop captures**. Click it and confirm the browser's prompt. You only do this once.
 6. **Make the icon easy to reach.** The SnapStitch icon lives next to the clock. Windows hides new icons behind the **^** arrow, so drag it out onto the taskbar. For a taskbar button too, right-click the **SnapStitch Desktop** shortcut on your desktop or in the Start menu and choose **Pin to taskbar**. Clicking it opens the popup, and right-clicking it lists the capture actions.
 
 The app finds the browsers and profiles that have SnapStitch by itself. If you use several, choose one under **Open captures in** in the tray menu. **Automatic** uses your default browser and the profile you used last. While it runs, `PrtSc` captures with SnapStitch instead of copying the screen to the clipboard.
@@ -198,9 +198,9 @@ SnapStitch was built for people who don't want their screenshots on someone else
 | `clipboardWrite` | Copies screenshots to your clipboard |
 | `tabCapture`, `offscreen` | Records the tab in a hidden extension page |
 | `storage` | Remembers that a recording is running, for as long as the browser stays open |
-| `nativeMessaging` | Receives captures from the SnapStitch Desktop app on your PC, if you install it. Does nothing otherwise |
+| `nativeMessaging` (optional) | Receives captures from the SnapStitch Desktop app on your PC. Asked for only when you click **Allow desktop captures**, the first time the app sends one |
 
-All the extension's code is in [`src/`](src): about 1,800 lines plus one small open-source GIF encoder. The desktop app is in [`desktop/`](desktop), about 1,400 lines. You're welcome to audit it.
+All the extension's code is in [`src/`](src): about 1,800 lines plus one small open-source GIF encoder. The desktop app is in [`desktop/`](desktop), about 1,400 lines. You're welcome to audit it. The full [privacy policy](PRIVACY.md) is short.
 
 ## FAQ
 
@@ -281,6 +281,10 @@ src/preview.*         preview tab (copy, download, delete)
 src/desktop-import.js receives desktop captures from the native messaging host
 test/                 end-to-end tests and the README screenshot generator
 docs/chrome-notes.md  Chrome behaviors the code relies on (read before changing capture code)
+docs/store-listing.md Chrome Web Store listing text, permission justifications, image list
+docs/store/           Chrome Web Store screenshots and promo tiles (made by npm run shots)
+tools/                icon generator, store package builder
+PRIVACY.md            privacy policy
 
 desktop/              SnapStitch Desktop (Electron): tray, PrtSc shortcuts, screen capture
 desktop/main.js       tray, popup, shortcuts, area selection, recording control, hand-off
@@ -299,7 +303,7 @@ docs/desktop-notes.md Windows and Electron behaviors the desktop app relies on
 ```bash
 cd test
 npm install      # downloads Chrome for Testing the first time (~170 MB)
-npm test         # 30 checks at 1x and 1.5x display scaling
+npm test         # 32 checks at 1x and 1.5x display scaling
 ONLY=record npm test   # run a subset
 ```
 
@@ -320,7 +324,9 @@ npm run self-test    # on your real screens: capture, record, open through the r
 npm start            # run from source instead of installing
 ```
 
-**Regenerate the README images** with `npm run shots`. It drives the extension on a fictional demo page (`test/fixtures/demo-page.html`).
+**Regenerate the README and store images** with `npm run shots`. It drives the extension on a fictional demo page (`test/fixtures/demo-page.html`).
+
+**Build the store upload** with `powershell -File tools\package-extension.ps1`. It writes `dist\SnapStitch-<version>.zip`, containing only `manifest.json`, `src/` and `icons/`. To check that the zip works on its own, unzip it and run the tests against it: `SNAPSTITCH_EXTENSION=<unzipped folder> npm test`. Publishing steps and listing text are in [docs/store-listing.md](docs/store-listing.md).
 
 Contributions are welcome. Please run `npm test` before opening a pull request, and read [docs/chrome-notes.md](docs/chrome-notes.md) if you touch capture or recording code.
 
