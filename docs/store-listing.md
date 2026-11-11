@@ -125,5 +125,5 @@ Free, public, all regions.
 
 ## After it's published
 
-- Add the store link to the README's install section.
+- Live at <https://chromewebstore.google.com/detail/snapstitch/ogekamablglppgbiapemomeiekmiogpf> (ID `ogekamablglppgbiapemomeiekmiogpf`), linked from the README.
 - The store gives the extension its own ID. SnapStitch Desktop finds the extension by its manifest, so it works with the store version without changes.

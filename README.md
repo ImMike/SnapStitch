@@ -9,6 +9,11 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/snapstitch/ogekamablglppgbiapemomeiekmiogpf"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-Add%20to%20Chrome-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Add SnapStitch to Chrome from the Chrome Web Store" height="40"></a>
+</p>
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/snapstitch/ogekamablglppgbiapemomeiekmiogpf"><img src="https://img.shields.io/chrome-web-store/v/ogekamablglppgbiapemomeiekmiogpf?label=chrome%20web%20store" alt="Chrome Web Store version"></a>
   <img src="https://img.shields.io/badge/price-free-brightgreen" alt="Free">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license">
   <img src="https://img.shields.io/badge/uploads-none-success" alt="No uploads">
@@ -17,7 +22,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-in-2-minutes">Install</a> ·
+  <a href="#install">Install</a> ·
   <a href="#features">Features</a> ·
   <a href="#how-snapstitch-compares">Compare</a> ·
   <a href="#privacy-and-security">Privacy</a> ·
@@ -123,9 +128,19 @@ You can change any shortcut at `chrome://extensions/shortcuts`, or from **Change
 
 If you want a **free Gyazo alternative**, a **Lightshot alternative without uploads**, a **GoFullPage alternative for full-page screenshots**, or a lightweight **Loom or Screencastify alternative for quick tab recordings** (when you don't need cloud sharing links), SnapStitch is built for you.
 
-## Install in 2 minutes
+## Install
 
-SnapStitch isn't in the Chrome Web Store yet, so you install it straight from this repository. It's safe, and it takes about 2 minutes:
+SnapStitch is free on the Chrome Web Store, and it updates itself:
+
+1. Open **[SnapStitch on the Chrome Web Store](https://chromewebstore.google.com/detail/snapstitch/ogekamablglppgbiapemomeiekmiogpf)** and click **Add to Chrome**.
+2. **Pin it.** Click the puzzle-piece icon in the toolbar, then click the pin next to **SnapStitch**.
+3. Open any website and press `Alt+Shift+S` to take your first screenshot.
+
+**Brave** and **Vivaldi** install it from the same page. In **Microsoft Edge**, first click **Allow extensions from other stores** in the banner at the top of the store page. In **Opera**, first add Opera's **Install Chrome Extensions** add-on.
+
+### Install from source
+
+To run the newest code before it reaches the store, or to try your own changes, load SnapStitch straight from this repository. If you have the store version, remove it first so the two don't fight over the shortcuts.
 
 1. **Download:** click the green **Code** button at the top of this page, then **Download ZIP**.
 2. **Unzip** it somewhere permanent, for example `Documents\SnapStitch`. Don't delete the folder afterwards: the browser loads the extension from it.
@@ -141,9 +156,9 @@ To **update**, download the ZIP again, replace the folder, and click the reload 
 
 ### Install SnapStitch Desktop (Windows, optional)
 
-Do this after installing the extension. SnapStitch Desktop comes as a normal Windows installer, **SnapStitch-Desktop-Setup.exe**. There's no download for it yet, so you build it once from the folder you unzipped (about 5 minutes):
+Do this after installing the extension. SnapStitch Desktop comes as a normal Windows installer, **SnapStitch-Desktop-Setup.exe**. There's no download for it yet, so you build it once from this repository (about 5 minutes). It works with the store version of the extension and with one installed from source.
 
-1. Install [Node.js](https://nodejs.org) (the LTS version) if you don't have it.
+1. Install [Node.js](https://nodejs.org) (the LTS version) if you don't have it. Download this repository (green **Code** button, then **Download ZIP**) and unzip it, unless you already did for [Install from source](#install-from-source).
 2. Open a terminal in the SnapStitch folder and run:
    ```bash
    cd desktop
@@ -153,7 +168,7 @@ Do this after installing the extension. SnapStitch Desktop comes as a normal Win
    If it says Electron failed to install, run `node node_modules/electron/install.js` once, then `npm run dist` again.
 3. **Double-click `desktop\dist\SnapStitch-Desktop-Setup-1.1.0.exe`.** It installs for your Windows user only (no admin prompt), adds Start menu and desktop shortcuts, and starts the app. Keep the installer if you want to install it on another PC.
 4. The first time it starts, it asks **"Start SnapStitch Desktop when Windows starts?"** Choose **Yes** if you want it always ready. You can change this later in the tray menu.
-5. On your browser's extensions page, click the **reload** icon on the SnapStitch card, in every browser profile you use it in, so it picks up the update. The first time a desktop capture arrives, the preview tab asks you to **Allow desktop captures**. Click it and confirm the browser's prompt. You only do this once.
+5. If you installed the extension from source, click the **reload** icon on its card on your extensions page, in every browser profile you use it in, so it picks up the latest code. The first time a desktop capture arrives, the preview tab asks you to **Allow desktop captures**. Click it and confirm the browser's prompt. You only do this once.
 6. **Make the icon easy to reach.** The SnapStitch icon lives next to the clock. Windows hides new icons behind the **^** arrow, so drag it out onto the taskbar. For a taskbar button too, right-click the **SnapStitch Desktop** shortcut on your desktop or in the Start menu and choose **Pin to taskbar**. Clicking it opens the popup, and right-clicking it lists the capture actions.
 
 The app finds the browsers and profiles that have SnapStitch by itself. If you use several, choose one under **Open captures in** in the tray menu. **Automatic** uses your default browser and the profile you used last. While it runs, `PrtSc` captures with SnapStitch instead of copying the screen to the clipboard.
@@ -219,7 +234,7 @@ On your computer. Recent captures stay in the browser's local storage so they ca
 <details>
 <summary><b>How do I take a full-page screenshot in Chrome?</b></summary>
 
-Install SnapStitch and press `Alt+Shift+F`, or click the toolbar icon and choose **Whole page**. It scrolls the page, stitches it into one PNG and opens it in a preview tab, ready to download.
+[Install SnapStitch](https://chromewebstore.google.com/detail/snapstitch/ogekamablglppgbiapemomeiekmiogpf) and press `Alt+Shift+F`, or click the toolbar icon and choose **Whole page**. It scrolls the page, stitches it into one PNG and opens it in a preview tab, ready to download.
 </details>
 
 <details>
@@ -243,13 +258,13 @@ The extension records the current browser tab. For the rest of your screen, inst
 <details>
 <summary><b>Does it work in Microsoft Edge, Brave, Opera or Vivaldi?</b></summary>
 
-It's built on the standard Chromium extension platform (Manifest V3), so it should. Install it the same way, using the browser's own extensions page. It's tested on Google Chrome.
+It's built on the standard Chromium extension platform (Manifest V3), so it should. Install it from the Chrome Web Store; Edge and Opera need one extra click first (see [Install](#install)). It's tested on Google Chrome.
 </details>
 
 <details>
 <summary><b>Why is there a "developer mode" warning?</b></summary>
 
-Browsers show that for any extension installed from a folder instead of the Web Store. It isn't a sign that anything is wrong. You can read all of SnapStitch's code in this repository.
+Browsers show that for any extension installed from a folder instead of the Web Store. It isn't a sign that anything is wrong, and you can read all of SnapStitch's code in this repository. To get rid of it, remove the folder copy and [install SnapStitch from the Chrome Web Store](https://chromewebstore.google.com/detail/snapstitch/ogekamablglppgbiapemomeiekmiogpf) instead.
 </details>
 
 ## Limitations
